@@ -4,9 +4,18 @@ import "./css/App.css"
 import Action from "./Action"
 import RotationContainer from "./Rotation"
 import ReactDOM from "react-dom"
-import { SPRINT_ACTION_ID } from "./constants"
+import { SPRINT_ACTION_ID, LINE_ID } from "./constants"
 
-const handleCodes = new Set(["00", "01", "02", "21", "22", "33"])
+const handleCodes = new Set([
+  LINE_ID.LogLine,
+  LINE_ID.ChangeZone,
+  LINE_ID.ChangePrimaryPlayer,
+  LINE_ID.NetworkStartsCasting,
+  LINE_ID.NetworkAbility,
+  LINE_ID.NetworkAOEAbility,
+  LINE_ID.NetworkCancelAbility,
+  LINE_ID.ActorControl,
+])
 
 export default function App() {
   const [actionList, setActionList] = React.useState([])
@@ -18,7 +27,8 @@ export default function App() {
     let lastAction = -1
     let currentZone = "Unknown"
 
-    let lastKey = 1
+    let lastKey = 0
+    let timeoutId = null
 
     let closeFn = listenToACT((...logSplit) => {
       const openNewEncounter = () => {
@@ -58,18 +68,18 @@ export default function App() {
       if (!handleCodes.has(logCode)) return
 
       switch (logCode) {
-        case "00":
+        case LINE_ID.LogLine:
           if (logParameter1 === "0038" && logParameter3 === "end")
             openNewEncounter()
           return
-        case "01":
+        case LINE_ID.ChangeZone:
           currentZone = logParameter2
           return
-        case "02":
+        case LINE_ID.ChangePrimaryPlayer:
           selfId = parseInt(logParameter1, 16)
           openNewEncounter()
           return
-        case "33":
+        case LINE_ID.ActorControl:
           if (logParameter2 === "40000012" || logParameter2 === "40000010")
             openNewEncounter()
           return
@@ -102,16 +112,34 @@ export default function App() {
       lastTimestamp = logTimestamp
       lastAction = action
 
-      const key = (lastKey % 256) + 1
-      lastKey = key
+      let keyToRemove = null
 
       // This is pretty silly but it's the neatest way to handle the updates going
       // out at the same time, without finding some way to merge the action lists....
       ReactDOM.unstable_batchedUpdates(() => {
-        setActionList((actionList) =>
-          actionList.concat({ action, ability, key }),
-        )
+        setActionList((actionList) => {
+          const lastAction = actionList.at(-1)
+
+          keyToRemove = lastAction?.key ?? null
+
+          if (logCode === LINE_ID.NetworkCancelAbility) {
+            return actionList.slice(0, -1)
+          } else if (lastAction?.action === action && lastAction?.casting) {
+            return actionList.with(-1, { ...lastAction, casting: false })
+          } else {
+            const key = (lastKey % 256) + 1
+            lastKey = key
+            return actionList.concat({
+              action,
+              ability,
+              key,
+              casting: logCode === LINE_ID.NetworkStartsCasting,
+            })
+          }
+        })
         setEncounterList((encounterList) => {
+          if (logCode !== LINE_ID.NetworkAbility) return encounterList
+
           if (!encounterList[0]) {
             encounterList[0] = {
               name: currentZone,
@@ -119,19 +147,24 @@ export default function App() {
             }
           }
 
-          encounterList[0].rotation.push(action)
+          encounterList[0].rotation.push({ action, ability })
 
           return encounterList
         })
       })
 
-      setTimeout(() => {
-        setActionList((actionList) => actionList.slice(1))
-      }, 10000)
+      if (keyToRemove != null) {
+        timeoutId = setTimeout(() => {
+          setActionList((actionList) =>
+            actionList.filter((action) => action.key !== keyToRemove),
+          )
+        }, 10000)
+      }
     })
 
     return () => {
       closeFn()
+      clearTimeout(timeoutId)
     }
   }, [])
 
@@ -139,11 +172,12 @@ export default function App() {
     <>
       <div className="container">
         <div className="actions">
-          {actionList.map(({ action, ability, key }) => (
+          {actionList.map(({ action, ability, key, casting }) => (
             <Action
               key={key}
               actionId={action}
               ability={ability}
+              casting={casting}
               additionalClasses="action-move"
             />
           ))}
