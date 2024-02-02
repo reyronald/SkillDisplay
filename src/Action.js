@@ -72,7 +72,7 @@ const actionOverrides = new Map([
 
 const actionMap = new Map()
 
-export default function Action({ actionId, ability, additionalClasses }) {
+export default function Action({ actionId, casting, ability, additionalClasses }) {
 	const [apiData, setApiData] = React.useState()
 
 	React.useEffect(() => {
@@ -120,6 +120,7 @@ export default function Action({ actionId, ability, additionalClasses }) {
 			className={
 				isGCD ? `gcd ${additionalClasses}` : `ogcd ${additionalClasses}`
 			}
+			style={casting ? { opacity: 0.5 } : undefined}
 			src={`https://xivapi.com/${apiData.Icon}`}
 			alt={apiData.Name || ""}
 		/>

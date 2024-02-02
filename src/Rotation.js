@@ -25,8 +25,8 @@ function RotationContents({ expanded, actionList }) {
 
 	return (
 		<div className="rotation-list">
-			{actionList.map((action, i) => (
-				<Action key={i} actionId={action} additionalClasses="action-rotation" />
+			{actionList.map(({ action, ability }, i) => (
+				<Action key={i} actionId={action} ability={ability} additionalClasses="action-rotation" />
 			))}
 		</div>
 	)
