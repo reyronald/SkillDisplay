@@ -1,6 +1,9 @@
 name: gh-pages
 
-on: push
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["master", "main"]
 
 jobs:
   publish:
