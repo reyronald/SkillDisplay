@@ -1,37 +1,37 @@
 .action-move {
-	animation-duration: 10s;
-	animation-name: action-move;
-	animation-timing-function: linear;
-	animation-fill-mode: forwards;
-	position: absolute;
+  animation-duration: 10s;
+  animation-name: action-move;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  position: absolute;
 }
 
 .gcd {
-	width: 3rem;
-	vertical-align: top;
+  width: 3rem;
+  vertical-align: top;
 }
 
 .ogcd {
-	width: 2rem;
-	vertical-align: top;
+  width: 2rem;
+  vertical-align: top;
 }
 
 .action-rotation.gcd {
-	margin-left: 1em;
+  margin-left: 1em;
 }
 
 .action-rotation.gcd::before {
-	content: '\25B6'; /* Unicode character for right arrow */
-	font-size: 13px;
-	color: rgba(255, 255, 255, 0.5);
+  content: "\25B6"; /* Unicode character for right arrow */
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 @keyframes action-move {
-	from {
-		transform: translateX(calc(100vw - 3rem));
-	}
-  
-	to {
-		transform: translateX(-3rem);
-	}
+  from {
+    transform: translateX(calc(100vw - 3rem));
+  }
+
+  to {
+    transform: translateX(-3rem);
+  }
 }
