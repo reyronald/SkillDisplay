@@ -4,17 +4,17 @@ import "./css/App.css"
 import Action from "./Action"
 import RotationContainer from "./Rotation"
 import ReactDOM from "react-dom"
-import { SPRINT_ACTION_ID, lINE_ID } from "./constants"
+import { SPRINT_ACTION_ID, LINE_ID } from "./constants"
 
 const handleCodes = new Set([
-	lINE_ID.LogLine,
-	lINE_ID.ChangeZone,
-	lINE_ID.ChangePrimaryPlayer,
-	lINE_ID.NetworkStartsCasting,
-	lINE_ID.NetworkAbility,
-	lINE_ID.NetworkAOEAbility,
-	lINE_ID.NetworkCancelAbility,
-	lINE_ID.ActorControl,
+	LINE_ID.LogLine,
+	LINE_ID.ChangeZone,
+	LINE_ID.ChangePrimaryPlayer,
+	LINE_ID.NetworkStartsCasting,
+	LINE_ID.NetworkAbility,
+	LINE_ID.NetworkAOEAbility,
+	LINE_ID.NetworkCancelAbility,
+	LINE_ID.ActorControl,
 ])
 
 export default function App() {
@@ -68,18 +68,18 @@ export default function App() {
 			if (!handleCodes.has(logCode)) return
 
 			switch (logCode) {
-				case lINE_ID.LogLine:
+				case LINE_ID.LogLine:
 					if (logParameter1 === "0038" && logParameter3 === "end")
 						openNewEncounter()
 					return
-				case lINE_ID.ChangeZone:
+				case LINE_ID.ChangeZone:
 					currentZone = logParameter2
 					return
-				case lINE_ID.ChangePrimaryPlayer:
+				case LINE_ID.ChangePrimaryPlayer:
 					selfId = parseInt(logParameter1, 16)
 					openNewEncounter()
 					return
-				case lINE_ID.ActorControl:
+				case LINE_ID.ActorControl:
 					if (logParameter2 === "40000012" || logParameter2 === "40000010")
 						openNewEncounter()
 					return
@@ -119,7 +119,7 @@ export default function App() {
 
 					keyToRemove = lastAction?.key ?? null
 
-					if (logCode === lINE_ID.NetworkCancelAbility) {
+					if (logCode === LINE_ID.NetworkCancelAbility) {
 						return actionList.slice(0, -1)
 					} else if (lastAction?.action === action && lastAction?.casting) {
 						return actionList.with(-1, {...lastAction, casting: false })
@@ -130,12 +130,12 @@ export default function App() {
 							action,
 							ability,
 							key,
-							casting: logCode === lINE_ID.NetworkStartsCasting
+							casting: logCode === LINE_ID.NetworkStartsCasting
 						})
 					}
 				})
 				setEncounterList(encounterList => {
-					if (logCode !== lINE_ID.NetworkAbility) return encounterList
+					if (logCode !== LINE_ID.NetworkAbility) return encounterList
 
 					if (!encounterList[0]) {
 						encounterList[0] = {

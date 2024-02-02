@@ -1,7 +1,7 @@
 export const SPRINT_ACTION_ID = 3
 
 // https://github.com/OverlayPlugin/cactbot/blob/main/docs/LogGuide.md
-export const lINE_ID = {
+export const LINE_ID = {
     LogLine: "00",
     ChangeZone: "01",
     ChangePrimaryPlayer: "02",
