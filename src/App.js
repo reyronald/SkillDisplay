@@ -32,7 +32,7 @@ export default function App() {
 
 		let closeFn = listenToACT((...logSplit) => {
 			const openNewEncounter = () => {
-				setEncounterList(encounterList => {
+				setEncounterList((encounterList) => {
 					if (
 						encounterList[0] &&
 						encounterList[0].rotation &&
@@ -43,7 +43,7 @@ export default function App() {
 
 					encounterList.unshift({
 						name: currentZone,
-						rotation: []
+						rotation: [],
 					})
 
 					return encounterList.slice(0, 3)
@@ -98,9 +98,12 @@ export default function App() {
 			const isCraftingAction = action >= 100001 && action <= 100300
 			const isBugOrDuplicate =
 				logTimestamp === lastTimestamp && action === lastAction
-			const isItem = ability.startsWith('item_')
+			const isItem = ability.startsWith("item_")
 
-			if ((!isCombatAction && !isCraftingAction && !isItem) || isBugOrDuplicate) {
+			if (
+				(!isCombatAction && !isCraftingAction && !isItem) ||
+				isBugOrDuplicate
+			) {
 				return
 			}
 
@@ -114,7 +117,7 @@ export default function App() {
 			// This is pretty silly but it's the neatest way to handle the updates going
 			// out at the same time, without finding some way to merge the action lists....
 			ReactDOM.unstable_batchedUpdates(() => {
-				setActionList(actionList => {
+				setActionList((actionList) => {
 					const lastAction = actionList.at(-1)
 
 					keyToRemove = lastAction?.key ?? null
@@ -122,25 +125,25 @@ export default function App() {
 					if (logCode === LINE_ID.NetworkCancelAbility) {
 						return actionList.slice(0, -1)
 					} else if (lastAction?.action === action && lastAction?.casting) {
-						return actionList.with(-1, {...lastAction, casting: false })
+						return actionList.with(-1, { ...lastAction, casting: false })
 					} else {
 						const key = (lastKey % 256) + 1
 						lastKey = key
-						return actionList.concat({ 
+						return actionList.concat({
 							action,
 							ability,
 							key,
-							casting: logCode === LINE_ID.NetworkStartsCasting
+							casting: logCode === LINE_ID.NetworkStartsCasting,
 						})
 					}
 				})
-				setEncounterList(encounterList => {
+				setEncounterList((encounterList) => {
 					if (logCode !== LINE_ID.NetworkAbility) return encounterList
 
 					if (!encounterList[0]) {
 						encounterList[0] = {
 							name: currentZone,
-							rotation: []
+							rotation: [],
 						}
 					}
 
@@ -152,7 +155,9 @@ export default function App() {
 
 			if (keyToRemove != null) {
 				timeoutId = setTimeout(() => {
-					setActionList(actionList => actionList.filter(action => action.key !== keyToRemove))
+					setActionList((actionList) =>
+						actionList.filter((action) => action.key !== keyToRemove),
+					)
 				}, 10000)
 			}
 		})

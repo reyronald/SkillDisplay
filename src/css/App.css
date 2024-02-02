@@ -17,17 +17,18 @@ html {
 
 .actions {
 	padding-top: 1rem;
-	background: linear-gradient(180deg, 
-		rgba(0,0,0,0) calc(25% - 1px), 
-        rgba(255,255,255,0.5) calc(25%), 
-        rgba(0,0,0,0) calc(25% + 1px),
-        rgba(0,0,0,0) calc(50% - 1px), 
-        rgba(255,255,255,0.5) calc(50%), 
-        rgba(0,0,0,0) calc(50% + 1px),
-		rgba(0,0,0,0) calc(75% - 1px), 
-        rgba(255,255,255,0.5) calc(75%), 
-        rgba(0,0,0,0) calc(75% + 1px)
-    );
+	background: linear-gradient(
+		180deg,
+		rgba(0, 0, 0, 0) calc(25% - 1px),
+		rgba(255, 255, 255, 0.5) calc(25%),
+		rgba(0, 0, 0, 0) calc(25% + 1px),
+		rgba(0, 0, 0, 0) calc(50% - 1px),
+		rgba(255, 255, 255, 0.5) calc(50%),
+		rgba(0, 0, 0, 0) calc(50% + 1px),
+		rgba(0, 0, 0, 0) calc(75% - 1px),
+		rgba(255, 255, 255, 0.5) calc(75%),
+		rgba(0, 0, 0, 0) calc(75% + 1px)
+	);
 	height: 3rem;
 	padding-bottom: 1rem;
 	background-color: rgba(20, 20, 20, 0.3);

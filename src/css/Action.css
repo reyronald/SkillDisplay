@@ -21,7 +21,7 @@
 }
 
 .action-rotation.gcd::before {
-	content: '\25B6'; /* Unicode character for right arrow */
+	content: "\25B6"; /* Unicode character for right arrow */
 	font-size: 13px;
 	color: rgba(255, 255, 255, 0.5);
 }
@@ -30,7 +30,7 @@
 	from {
 		transform: translateX(calc(100vw - 3rem));
 	}
-  
+
 	to {
 		transform: translateX(-3rem);
 	}

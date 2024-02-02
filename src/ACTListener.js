@@ -1,4 +1,5 @@
-const getHost = () => /[?&]HOST_PORT=(wss?:\/\/[^&/]+)/.exec(window.location.search)
+const getHost = () =>
+	/[?&]HOST_PORT=(wss?:\/\/[^&/]+)/.exec(window.location.search)
 
 export default function listenToACT(callback) {
 	if (!getHost()) return listenOverlayPlugin(callback)
@@ -14,7 +15,7 @@ function listenActWebSocket(callback) {
 		setTimeout(() => {
 			listenActWebSocket(callback)
 		}, 1000)
-	ws.onmessage = function(e, m) {
+	ws.onmessage = function (e, m) {
 		if (e.data === ".") return ws.send(".")
 
 		const obj = JSON.parse(e.data)
@@ -31,7 +32,7 @@ function listenActWebSocket(callback) {
 }
 
 function listenOverlayPlugin(callback) {
-	const listener = e => {
+	const listener = (e) => {
 		callback(...e.detail)
 	}
 

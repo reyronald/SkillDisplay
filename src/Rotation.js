@@ -10,7 +10,7 @@ export default function RotationContainer({ encounterId, name, actionList }) {
 			<button
 				className={open ? "rotation-button expanded" : "rotation-button"}
 				onClick={() => {
-					setOpen(open => !open)
+					setOpen((open) => !open)
 				}}
 			>
 				{encounterId === 0 ? "Current Rotation" : name}
@@ -26,7 +26,12 @@ function RotationContents({ expanded, actionList }) {
 	return (
 		<div className="rotation-list">
 			{actionList.map(({ action, ability }, i) => (
-				<Action key={i} actionId={action} ability={ability} additionalClasses="action-rotation" />
+				<Action
+					key={i}
+					actionId={action}
+					ability={ability}
+					additionalClasses="action-rotation"
+				/>
 			))}
 		</div>
 	)

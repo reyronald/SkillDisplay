@@ -72,7 +72,12 @@ const actionOverrides = new Map([
 
 const actionMap = new Map()
 
-export default function Action({ actionId, casting, ability, additionalClasses }) {
+export default function Action({
+	actionId,
+	casting,
+	ability,
+	additionalClasses,
+}) {
 	const [apiData, setApiData] = React.useState()
 
 	React.useEffect(() => {
