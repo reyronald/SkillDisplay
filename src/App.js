@@ -125,7 +125,9 @@ export default function App() {
           if (logCode === LINE_ID.NetworkCancelAbility) {
             return actionList.slice(0, -1)
           } else if (lastAction?.action === action && lastAction?.casting) {
-            return actionList.with(-1, { ...lastAction, casting: false })
+            const nextActionList = actionList.slice()
+            nextActionList[nextActionList.length -1] =  { ...lastAction, casting: false }
+            return nextActionList
           } else {
             const key = (lastKey % 256) + 1
             lastKey = key
