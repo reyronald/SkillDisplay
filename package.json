@@ -5,7 +5,7 @@
   "type": "module",
   "homepage": "https://rawrington.github.io/SkillDisplay/",
   "scripts": {
-    "dev": "vite --port 3000",
+    "dev": "vite --port 3000 --open /SkillDisplay?HOST_PORT=ws://127.0.0.1:10501",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
