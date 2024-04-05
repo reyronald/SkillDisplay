@@ -15,7 +15,7 @@ function listenActWebSocket(callback) {
     setTimeout(() => {
       listenActWebSocket(callback)
     }, 1000)
-  ws.onmessage = function (e, m) {
+  ws.onmessage = function (e, _m) {
     if (e.data === ".") return ws.send(".")
 
     const obj = JSON.parse(e.data)
