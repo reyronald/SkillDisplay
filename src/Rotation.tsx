@@ -25,6 +25,7 @@ export default function RotationContainer({
       >
         {encounterId === 0 ? "Current Rotation" : name}
       </button>
+
       <RotationContents expanded={open} actionList={actionList} />
     </>
   )

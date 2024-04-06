@@ -193,28 +193,27 @@ export default function App() {
   }, [])
 
   return (
-    <>
-      <div className="container">
-        <div className="actions">
-          {actionList.map(({ actionId, ability, key, casting }) => (
-            <Action
-              key={key}
-              actionId={actionId}
-              ability={ability}
-              casting={casting}
-              additionalClasses="action-move"
-            />
-          ))}
-        </div>
-        {encounterList.map((encounter, i) => (
-          <RotationContainer
-            key={i}
-            encounterId={i}
-            name={encounter.name}
-            actionList={encounter.actionList}
+    <div className="container">
+      <div className="actions">
+        {actionList.map(({ actionId, ability, key, casting }) => (
+          <Action
+            key={key}
+            actionId={actionId}
+            ability={ability}
+            casting={casting}
+            additionalClasses="action-move"
           />
         ))}
       </div>
-    </>
+
+      {encounterList.map((encounter, i) => (
+        <RotationContainer
+          key={i}
+          encounterId={i}
+          name={encounter.name}
+          actionList={encounter.actionList}
+        />
+      ))}
+    </div>
   )
 }
