@@ -63,7 +63,7 @@ export default function App() {
       }
 
       if (
-        // logSplit.length === 1 &&
+        logSplit.length === 1 &&
         typeof logSplit[0] !== "string" &&
         logSplit[0].charID
       ) {
