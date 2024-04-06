@@ -45,6 +45,7 @@ function listenActWebSocket(callback: Callback) {
 }
 
 function listenOverlayPlugin(callback: Callback) {
+  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
   const listener = (e: any) => {
     callback(...e.detail)
   }
