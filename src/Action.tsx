@@ -72,13 +72,26 @@ const actionOverrides = new Map([
 
 const actionMap = new Map()
 
+type APIData = {
+  ActionCategoryTargetID: number
+  Icon: string
+  Name: string
+}
+
+type Props = {
+  actionId: number
+  casting: boolean
+  ability: string
+  additionalClasses: string
+}
+
 export default function Action({
   actionId,
   casting,
   ability,
   additionalClasses,
-}) {
-  const [apiData, setApiData] = React.useState()
+}: Props) {
+  const [apiData, setApiData] = React.useState<APIData>()
 
   React.useEffect(() => {
     const mapData = actionMap.get(actionId)
@@ -132,12 +145,12 @@ export default function Action({
   )
 }
 
-function getIsItem(ability) {
+function getIsItem(ability: string) {
   const isIt = ability.startsWith("item_")
   return isIt
 }
 
-function getItemId(ability) {
+function getItemId(ability: string) {
   const isItem = getIsItem(ability)
   if (!isItem) return null
 

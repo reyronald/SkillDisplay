@@ -10,4 +10,6 @@ export const LINE_ID = {
   NetworkAOEAbility: "22",
   NetworkCancelAbility: "23",
   ActorControl: "33",
-}
+} as const
+
+export type LogCode = (typeof LINE_ID)[keyof typeof LINE_ID]

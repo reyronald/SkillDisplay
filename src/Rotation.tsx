@@ -2,7 +2,17 @@ import React from "react"
 import "./css/Rotation.css"
 import Action from "./Action"
 
-export default function RotationContainer({ encounterId, name, actionList }) {
+type Props = {
+  encounterId: number
+  name: string
+  actionList: Array<{ actionId: number; ability: string }>
+}
+
+export default function RotationContainer({
+  encounterId,
+  name,
+  actionList,
+}: Props) {
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -20,17 +30,24 @@ export default function RotationContainer({ encounterId, name, actionList }) {
   )
 }
 
-function RotationContents({ expanded, actionList }) {
+function RotationContents({
+  expanded,
+  actionList,
+}: {
+  expanded: boolean
+  actionList: Props["actionList"]
+}) {
   if (!expanded) return null
 
   return (
     <div className="rotation-list">
-      {actionList.map(({ action, ability }, i) => (
+      {actionList.map(({ actionId, ability }, i) => (
         <Action
           key={i}
-          actionId={action}
+          actionId={actionId}
           ability={ability}
           additionalClasses="action-rotation"
+          casting={false}
         />
       ))}
     </div>
