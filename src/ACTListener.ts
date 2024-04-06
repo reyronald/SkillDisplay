@@ -8,8 +8,8 @@ type Callback = (
 type EventData = {
   type: "broadcast"
   msgtype: "Chat" | "SendCharName"
-  msg: string
-}
+      msg: string
+    }
 
 export default function listenToACT(callback: Callback) {
   if (!getHost()) return listenOverlayPlugin(callback)
@@ -24,10 +24,6 @@ function listenActWebSocket(callback: Callback) {
 
   const ws = new WebSocket(wsUri)
   ws.onerror = () => ws.close()
-  ws.onclose = () =>
-    setTimeout(() => {
-      listenActWebSocket(callback)
-    }, 1000)
   ws.onmessage = function (e) {
     if (e.data === ".") return ws.send(".")
 
