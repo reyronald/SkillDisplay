@@ -1,54 +1,54 @@
-const getHost = () =>
-  /[?&]HOST_PORT=(wss?:\/\/[^&/]+)/.exec(window.location.search)
-
-type Callback = (
-  ...args: (string | { charID: number; charName: string })[]
-) => void
-
 type EventData = {
   type: "broadcast"
-  msgtype: "Chat" | "SendCharName"
+} & (
+  | {
+      msgtype: "ChangeZone"
+      msg: {
+        type: "ChangeZone"
+        zoneID: number
+        zoneName: string
+      }
+    }
+  | {
+      msgtype: "SendCharName"
+      msg: {
+        charID: number
+        charName: string
+        type: "ChangePrimaryPlayer"
+      }
+    }
+  | {
+      msgtype: "Chat"
       msg: string
     }
+)
 
-export default function listenToACT(callback: Callback) {
-  if (!getHost()) return listenOverlayPlugin(callback)
-  return listenActWebSocket(callback)
-}
+type Callback = (eventData: EventData) => void
 
 // https://github.com/OverlayPlugin/cactbot/blob/main/docs/LogGuide.md
-function listenActWebSocket(callback: Callback) {
-  const host = getHost()
-  const wsUri = host && host[1] ? `${host[1]}/BeforeLogLineRead` : undefined
-  if (!wsUri) return () => undefined
+export default function listenToACT(callback: Callback) {
+  const urlSearchParams = new URLSearchParams(window.location.search)
+  const HOST_PORT = urlSearchParams.get("HOST_PORT")
+  const hostPort = HOST_PORT || "ws://127.0.0.1:10501"
+
+  const wsUri = `${hostPort}/BeforeLogLineRead`
 
   const ws = new WebSocket(wsUri)
+
   ws.onerror = () => ws.close()
+
   ws.onmessage = function (e) {
     if (e.data === ".") return ws.send(".")
 
-    const obj: EventData = JSON.parse(e.data)
-    if (obj.msgtype === "SendCharName") {
-      return callback(obj.msg)
-    } else if (obj.msgtype === "Chat") {
-      return callback(...obj.msg.split("|"))
+    const eventData: EventData = JSON.parse(e.data)
+    if (eventData.msgtype === "SendCharName") {
+      return callback(eventData)
+    } else if (eventData.msgtype === "Chat") {
+      return callback(eventData)
     }
   }
 
   return () => {
     ws.close()
-  }
-}
-
-function listenOverlayPlugin(callback: Callback) {
-  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-  const listener = (e: any) => {
-    callback(...e.detail)
-  }
-
-  document.addEventListener("onLogLine", listener)
-
-  return () => {
-    document.removeEventListener("onLogLine", listener)
   }
 }

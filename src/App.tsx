@@ -42,7 +42,7 @@ export default function App() {
     let lastKey = 0
     let timeoutId: number | undefined = undefined
 
-    const closeFn = listenToACT((...logSplit) => {
+    const closeFn = listenToACT((eventData) => {
       const openNewEncounter = () => {
         setEncounterList((encounterList) => {
           if (
@@ -62,127 +62,127 @@ export default function App() {
         })
       }
 
-      if (
-        logSplit.length === 1 &&
-        typeof logSplit[0] !== "string" &&
-        logSplit[0].charID
-      ) {
-        selfId = logSplit[0].charID
+      if (eventData.msgtype === "SendCharName") {
+        selfId = eventData.msg.charID
         openNewEncounter()
         return
       }
 
-      function refineType(_arg: typeof logSplit): asserts _arg is string[] {}
-      refineType(logSplit)
+      if (eventData.msgtype === "Chat") {
+        const logSplit = eventData.msg.split("|")
 
-      const [
-        logCode,
-        logTimestamp,
-        logParameter1,
-        logParameter2,
-        logParameter3,
-        ability,
-      ] = logSplit
+        const [
+          logCode,
+          logTimestamp,
+          logParameter1,
+          logParameter2,
+          logParameter3,
+          ability,
+        ] = logSplit
 
-      if (!handleCodes.has(logCode as LogCode)) return
+        if (!handleCodes.has(logCode as LogCode)) return
 
-      switch (logCode) {
-        case LINE_ID.LogLine:
-          if (logParameter1 === "0038" && logParameter3 === "end")
+        switch (logCode) {
+          case LINE_ID.LogLine:
+            if (logParameter1 === "0038" && logParameter3 === "end")
+              openNewEncounter()
+            return
+          case LINE_ID.ChangeZone:
+            currentZone = logParameter2
+            return
+          case LINE_ID.ChangePrimaryPlayer:
+            selfId = parseInt(logParameter1, 16)
             openNewEncounter()
+            return
+          case LINE_ID.ActorControl:
+            if (logParameter2 === "40000012" || logParameter2 === "40000010")
+              openNewEncounter()
+            return
+          default:
+            break
+        }
+
+        if (selfId === undefined) return
+
+        if (parseInt(logParameter1, 16) !== selfId) return
+
+        const actionId = parseInt(logParameter3, 16)
+
+        const isCombatAction =
+          (actionId >= 9 && actionId <= 30000) || actionId === SPRINT_ACTION_ID
+        const isCraftingAction = actionId >= 100001 && actionId <= 100300
+        const isBugOrDuplicate =
+          logTimestamp === lastTimestamp && actionId === lastAction
+        const isItem = ability.startsWith("item_")
+
+        if (
+          (!isCombatAction && !isCraftingAction && !isItem) ||
+          isBugOrDuplicate
+        ) {
           return
-        case LINE_ID.ChangeZone:
-          currentZone = logParameter2
-          return
-        case LINE_ID.ChangePrimaryPlayer:
-          selfId = parseInt(logParameter1, 16)
-          openNewEncounter()
-          return
-        case LINE_ID.ActorControl:
-          if (logParameter2 === "40000012" || logParameter2 === "40000010")
-            openNewEncounter()
-          return
-        default:
-          break
-      }
+        }
 
-      if (selfId === undefined) return
+        if (Date.now() - Date.parse(lastTimestamp) > 120000) openNewEncounter() //last action > 120s ago
 
-      if (parseInt(logParameter1, 16) !== selfId) return
+        lastTimestamp = logTimestamp
+        lastAction = actionId
 
-      const actionId = parseInt(logParameter3, 16)
+        let keyToRemove: number | null = null
 
-      const isCombatAction =
-        (actionId >= 9 && actionId <= 30000) || actionId === SPRINT_ACTION_ID
-      const isCraftingAction = actionId >= 100001 && actionId <= 100300
-      const isBugOrDuplicate =
-        logTimestamp === lastTimestamp && actionId === lastAction
-      const isItem = ability.startsWith("item_")
+        // This is pretty silly but it's the neatest way to handle the updates going
+        // out at the same time, without finding some way to merge the action lists....
+        ReactDOM.unstable_batchedUpdates(() => {
+          setActionList((actionList) => {
+            const lastAction = actionList.at(-1)
 
-      if (
-        (!isCombatAction && !isCraftingAction && !isItem) ||
-        isBugOrDuplicate
-      ) {
-        return
-      }
+            keyToRemove = lastAction?.key ?? null
 
-      if (Date.now() - Date.parse(lastTimestamp) > 120000) openNewEncounter() //last action > 120s ago
-
-      lastTimestamp = logTimestamp
-      lastAction = actionId
-
-      let keyToRemove: number | null = null
-
-      // This is pretty silly but it's the neatest way to handle the updates going
-      // out at the same time, without finding some way to merge the action lists....
-      ReactDOM.unstable_batchedUpdates(() => {
-        setActionList((actionList) => {
-          const lastAction = actionList.at(-1)
-
-          keyToRemove = lastAction?.key ?? null
-
-          if (logCode === LINE_ID.NetworkCancelAbility) {
-            return actionList.slice(0, -1)
-          } else if (lastAction?.actionId === actionId && lastAction?.casting) {
-            const nextActionList = actionList.slice()
-            nextActionList[nextActionList.length - 1] = {
-              ...lastAction,
-              casting: false,
+            if (logCode === LINE_ID.NetworkCancelAbility) {
+              return actionList.slice(0, -1)
+            } else if (
+              lastAction?.actionId === actionId &&
+              lastAction?.casting
+            ) {
+              const nextActionList = actionList.slice()
+              nextActionList[nextActionList.length - 1] = {
+                ...lastAction,
+                casting: false,
+              }
+              return nextActionList
+            } else {
+              const key = (lastKey % 256) + 1
+              lastKey = key
+              return actionList.concat({
+                actionId,
+                ability,
+                key,
+                casting: logCode === LINE_ID.NetworkStartsCasting,
+              })
             }
-            return nextActionList
-          } else {
-            const key = (lastKey % 256) + 1
-            lastKey = key
-            return actionList.concat({
-              actionId,
-              ability,
-              key,
-              casting: logCode === LINE_ID.NetworkStartsCasting,
-            })
-          }
-        })
-        setEncounterList((encounterList) => {
-          if (logCode !== LINE_ID.NetworkAbility) return encounterList
+          })
+          setEncounterList((encounterList) => {
+            if (logCode !== LINE_ID.NetworkAbility) return encounterList
 
-          if (!encounterList[0]) {
-            encounterList[0] = {
-              name: currentZone,
-              actionList: [],
+            if (!encounterList[0]) {
+              encounterList[0] = {
+                name: currentZone,
+                actionList: [],
+              }
             }
-          }
 
-          encounterList[0].actionList.push({ actionId, ability })
+            encounterList[0].actionList.push({ actionId, ability })
 
-          return encounterList
+            return encounterList
+          })
         })
-      })
 
-      if (keyToRemove != null) {
-        timeoutId = window.setTimeout(() => {
-          setActionList((actionList) =>
-            actionList.filter((action) => action.key !== keyToRemove),
-          )
-        }, 10000)
+        if (keyToRemove != null) {
+          timeoutId = window.setTimeout(() => {
+            setActionList((actionList) =>
+              actionList.filter((action) => action.key !== keyToRemove),
+            )
+          }, 10000)
+        }
       }
     })
 
