@@ -4,7 +4,7 @@ import "./css/App.css"
 import Action from "./Action"
 import RotationContainer from "./Rotation"
 import ReactDOM from "react-dom"
-import { SPRINT_ACTION_ID, LINE_ID } from "./constants"
+import { SPRINT_ACTION_ID, LINE_ID, LogCode } from "./constants"
 
 const handleCodes = new Set([
   LINE_ID.LogLine,
@@ -17,44 +17,63 @@ const handleCodes = new Set([
   LINE_ID.ActorControl,
 ])
 
+type Action = {
+  key: number
+  actionId: number
+  ability: string
+  casting: boolean
+}
+
+type Encounter = {
+  name: string
+  actionList: Array<{ actionId: number; ability: string }>
+}
+
 export default function App() {
-  const [actionList, setActionList] = React.useState([])
-  const [encounterList, setEncounterList] = React.useState([])
+  const [actionList, setActionList] = React.useState<Action[]>([])
+  const [encounterList, setEncounterList] = React.useState<Encounter[]>([])
 
   React.useEffect(() => {
-    let selfId
+    let selfId: number | undefined
     let lastTimestamp = ""
     let lastAction = -1
     let currentZone = "Unknown"
 
     let lastKey = 0
-    let timeoutId = null
+    let timeoutId: number | undefined = undefined
 
-    let closeFn = listenToACT((...logSplit) => {
+    const closeFn = listenToACT((...logSplit) => {
       const openNewEncounter = () => {
         setEncounterList((encounterList) => {
           if (
             encounterList[0] &&
-            encounterList[0].rotation &&
-            encounterList[0].rotation.length <= 0
+            encounterList[0].actionList &&
+            encounterList[0].actionList.length <= 0
           ) {
             encounterList.shift()
           }
 
           encounterList.unshift({
             name: currentZone,
-            rotation: [],
+            actionList: [],
           })
 
           return encounterList.slice(0, 3)
         })
       }
 
-      if (logSplit.length === 1 && logSplit[0].charID) {
+      if (
+        logSplit.length === 1 &&
+        typeof logSplit[0] !== "string" &&
+        logSplit[0].charID
+      ) {
         selfId = logSplit[0].charID
         openNewEncounter()
         return
       }
+
+      function refineType(_arg: typeof logSplit): asserts _arg is string[] {}
+      refineType(logSplit)
 
       const [
         logCode,
@@ -65,7 +84,7 @@ export default function App() {
         ability,
       ] = logSplit
 
-      if (!handleCodes.has(logCode)) return
+      if (!handleCodes.has(logCode as LogCode)) return
 
       switch (logCode) {
         case LINE_ID.LogLine:
@@ -91,13 +110,13 @@ export default function App() {
 
       if (parseInt(logParameter1, 16) !== selfId) return
 
-      const action = parseInt(logParameter3, 16)
+      const actionId = parseInt(logParameter3, 16)
 
       const isCombatAction =
-        (action >= 9 && action <= 30000) || action === SPRINT_ACTION_ID
-      const isCraftingAction = action >= 100001 && action <= 100300
+        (actionId >= 9 && actionId <= 30000) || actionId === SPRINT_ACTION_ID
+      const isCraftingAction = actionId >= 100001 && actionId <= 100300
       const isBugOrDuplicate =
-        logTimestamp === lastTimestamp && action === lastAction
+        logTimestamp === lastTimestamp && actionId === lastAction
       const isItem = ability.startsWith("item_")
 
       if (
@@ -110,9 +129,9 @@ export default function App() {
       if (Date.now() - Date.parse(lastTimestamp) > 120000) openNewEncounter() //last action > 120s ago
 
       lastTimestamp = logTimestamp
-      lastAction = action
+      lastAction = actionId
 
-      let keyToRemove = null
+      let keyToRemove: number | null = null
 
       // This is pretty silly but it's the neatest way to handle the updates going
       // out at the same time, without finding some way to merge the action lists....
@@ -124,15 +143,18 @@ export default function App() {
 
           if (logCode === LINE_ID.NetworkCancelAbility) {
             return actionList.slice(0, -1)
-          } else if (lastAction?.action === action && lastAction?.casting) {
+          } else if (lastAction?.actionId === actionId && lastAction?.casting) {
             const nextActionList = actionList.slice()
-            nextActionList[nextActionList.length -1] =  { ...lastAction, casting: false }
+            nextActionList[nextActionList.length - 1] = {
+              ...lastAction,
+              casting: false,
+            }
             return nextActionList
           } else {
             const key = (lastKey % 256) + 1
             lastKey = key
             return actionList.concat({
-              action,
+              actionId,
               ability,
               key,
               casting: logCode === LINE_ID.NetworkStartsCasting,
@@ -145,18 +167,18 @@ export default function App() {
           if (!encounterList[0]) {
             encounterList[0] = {
               name: currentZone,
-              rotation: [],
+              actionList: [],
             }
           }
 
-          encounterList[0].rotation.push({ action, ability })
+          encounterList[0].actionList.push({ actionId, ability })
 
           return encounterList
         })
       })
 
       if (keyToRemove != null) {
-        timeoutId = setTimeout(() => {
+        timeoutId = window.setTimeout(() => {
           setActionList((actionList) =>
             actionList.filter((action) => action.key !== keyToRemove),
           )
@@ -171,28 +193,27 @@ export default function App() {
   }, [])
 
   return (
-    <>
-      <div className="container">
-        <div className="actions">
-          {actionList.map(({ action, ability, key, casting }) => (
-            <Action
-              key={key}
-              actionId={action}
-              ability={ability}
-              casting={casting}
-              additionalClasses="action-move"
-            />
-          ))}
-        </div>
-        {encounterList.map((encounter, i) => (
-          <RotationContainer
-            key={i}
-            encounterId={i}
-            name={encounter.name}
-            actionList={encounter.rotation}
+    <div className="container">
+      <div className="actions">
+        {actionList.map(({ actionId, ability, key, casting }) => (
+          <Action
+            key={key}
+            actionId={actionId}
+            ability={ability}
+            casting={casting}
+            additionalClasses="action-move"
           />
         ))}
       </div>
-    </>
+
+      {encounterList.map((encounter, i) => (
+        <RotationContainer
+          key={i}
+          encounterId={i}
+          name={encounter.name}
+          actionList={encounter.actionList}
+        />
+      ))}
+    </div>
   )
 }
