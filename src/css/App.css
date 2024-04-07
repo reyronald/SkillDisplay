@@ -13,6 +13,12 @@ html {
   overflow: hidden;
   background-image: none;
   background-repeat: no-repeat;
+  font-size: 16px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
 }
 
 .actions {
@@ -33,9 +39,17 @@ html {
   padding-bottom: 1rem;
   background-color: rgba(20, 20, 20, 0.3);
   display: inline-block;
+  position: relative;
 }
 
-.container {
-  display: flex;
-  flex-direction: column;
+.error {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  color: white;
+  background: black;
+
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
