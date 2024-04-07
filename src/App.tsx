@@ -146,8 +146,9 @@ export default function App() {
             return
           }
 
-          if (Date.now() - Date.parse(lastTimestamp) > 120000)
+          if (Date.now() - Date.parse(lastTimestamp) > 120000) {
             openNewEncounter() //last action > 120s ago
+          }
 
           lastTimestamp = logTimestamp
           lastAction = actionId
