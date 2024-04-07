@@ -20,7 +20,7 @@ const handleCodes = new Set([
 ])
 
 type Action = {
-  key: number
+  key: string
   actionId: number
   ability: string
   casting: boolean
@@ -46,7 +46,6 @@ export default function App() {
     let lastAction = -1
     let currentZone = "Unknown"
 
-    let lastKey = 0
     let timeoutId: number | undefined = undefined
 
     const closeFn = listenToACT({
@@ -153,7 +152,7 @@ export default function App() {
           lastTimestamp = logTimestamp
           lastAction = actionId
 
-          let keyToRemove: number | null = null
+          let keyToRemove: string | null = null
 
           // This is pretty silly but it's the neatest way to handle the updates going
           // out at the same time, without finding some way to merge the action lists....
@@ -176,8 +175,7 @@ export default function App() {
                 }
                 return nextActionList
               } else {
-                const key = (lastKey % 256) + 1
-                lastKey = key
+                const key = logTimestamp
                 return actionList.concat({
                   actionId,
                   ability,
