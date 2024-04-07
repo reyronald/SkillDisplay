@@ -62,7 +62,7 @@ export default function App() {
           if (ref.current === "closed") {
             setRetry((n) => n + 1)
           }
-        }, 3000)
+        }, 500)
       },
 
       onmessage: (eventData) => {
