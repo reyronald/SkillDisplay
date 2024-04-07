@@ -1,4 +1,4 @@
-import React from "react"
+import { useEffect, useReducer, useRef, useState } from "react"
 import ReactDOM from "react-dom"
 
 import Action from "./Action"
@@ -32,15 +32,15 @@ type Encounter = {
 }
 
 export default function App() {
-  const [actionList, setActionList] = React.useState<Action[]>([])
-  const [encounterList, setEncounterList] = React.useState<Encounter[]>([])
+  const [actionList, setActionList] = useState<Action[]>([])
+  const [encounterList, setEncounterList] = useState<Encounter[]>([])
 
-  const [retry, setRetry] = React.useState(0)
+  const [reconnectionToken, reconnect] = useReducer((x) => x + 1, 0)
 
-  const ref = React.useRef<"idle" | "closed" | "opened">("idle")
-  const [status, setStatus] = React.useState<typeof ref.current>("idle")
+  const ref = useRef<"idle" | "closed" | "opened">("idle")
+  const [status, setStatus] = useState<typeof ref.current>("idle")
 
-  React.useEffect(() => {
+  useEffect(() => {
     let selfId: number | undefined
     let lastTimestamp = ""
     let lastAction = -1
@@ -60,7 +60,7 @@ export default function App() {
 
         setTimeout(() => {
           if (ref.current === "closed") {
-            setRetry((n) => n + 1)
+            reconnect()
           }
         }, 500)
       },
@@ -217,7 +217,7 @@ export default function App() {
       closeFn()
       clearTimeout(timeoutId)
     }
-  }, [retry])
+  }, [reconnectionToken])
 
   return (
     <div className="container">
