@@ -25,11 +25,22 @@ type EventData = {
 
 type Callback = (eventData: EventData) => void
 
-// https://github.com/OverlayPlugin/cactbot/blob/main/docs/LogGuide.md
-export default function listenToACT(callback: Callback) {
+export function getHost() {
   const urlSearchParams = new URLSearchParams(window.location.search)
   const HOST_PORT = urlSearchParams.get("HOST_PORT")
   const hostPort = HOST_PORT || "ws://127.0.0.1:10501"
+  return hostPort
+}
+
+// https://github.com/OverlayPlugin/cactbot/blob/main/docs/LogGuide.md
+export function listenToACT(callbacks: {
+  onopen: () => void
+  onclose: () => void
+  onmessage: Callback
+}) {
+  const { onopen, onclose, onmessage } = callbacks
+
+  const hostPort = getHost()
 
   const wsUri = `${hostPort}/BeforeLogLineRead`
 
@@ -37,14 +48,18 @@ export default function listenToACT(callback: Callback) {
 
   ws.onerror = () => ws.close()
 
+  ws.onopen = onopen
+
+  ws.onclose = onclose
+
   ws.onmessage = function (e) {
     if (e.data === ".") return ws.send(".")
 
     const eventData: EventData = JSON.parse(e.data)
     if (eventData.msgtype === "SendCharName") {
-      return callback(eventData)
+      return onmessage(eventData)
     } else if (eventData.msgtype === "Chat") {
-      return callback(eventData)
+      return onmessage(eventData)
     }
   }
 
