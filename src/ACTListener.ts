@@ -33,29 +33,33 @@ export function getHost() {
 }
 
 // https://github.com/OverlayPlugin/cactbot/blob/main/docs/LogGuide.md
-export function listenToACT(
-  callback: Callback,
-  onError: (event: Event) => void,
-) {
+export function listenToACT(callbacks: {
+  onopen: () => void
+  onclose: () => void
+  onmessage: Callback
+}) {
+  const { onopen, onclose, onmessage } = callbacks
+
   const hostPort = getHost()
 
   const wsUri = `${hostPort}/BeforeLogLineRead`
 
   const ws = new WebSocket(wsUri)
 
-  ws.onerror = (e) => {
-    ws.close()
-    onError(e)
-  }
+  ws.onerror = () => ws.close()
+
+  ws.onopen = onopen
+
+  ws.onclose = onclose
 
   ws.onmessage = function (e) {
     if (e.data === ".") return ws.send(".")
 
     const eventData: EventData = JSON.parse(e.data)
     if (eventData.msgtype === "SendCharName") {
-      return callback(eventData)
+      return onmessage(eventData)
     } else if (eventData.msgtype === "Chat") {
-      return callback(eventData)
+      return onmessage(eventData)
     }
   }
 

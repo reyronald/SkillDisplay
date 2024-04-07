@@ -34,7 +34,11 @@ type Encounter = {
 export default function App() {
   const [actionList, setActionList] = React.useState<Action[]>([])
   const [encounterList, setEncounterList] = React.useState<Encounter[]>([])
-  const [isError, setIsError] = React.useState(false)
+
+  const [retry, setRetry] = React.useState(0)
+
+  const ref = React.useRef<"idle" | "closed" | "opened">("idle")
+  const [status, setStatus] = React.useState<typeof ref.current>("idle")
 
   React.useEffect(() => {
     let selfId: number | undefined
@@ -45,10 +49,23 @@ export default function App() {
     let lastKey = 0
     let timeoutId: number | undefined = undefined
 
-    const closeFn = listenToACT(
-      (eventData) => {
-        setIsError(false)
+    const closeFn = listenToACT({
+      onopen: () => {
+        setStatus("opened")
+        ref.current = "opened"
+      },
+      onclose: () => {
+        setStatus("closed")
+        ref.current = "closed"
 
+        setTimeout(() => {
+          if (ref.current === "closed") {
+            setRetry((n) => n + 1)
+          }
+        }, 3000)
+      },
+
+      onmessage: (eventData) => {
         const openNewEncounter = () => {
           setEncounterList((encounterList) => {
             if (
@@ -193,22 +210,18 @@ export default function App() {
           }
         }
       },
-
-      () => {
-        setIsError(true)
-      },
-    )
+    })
 
     return () => {
       closeFn()
       clearTimeout(timeoutId)
     }
-  }, [])
+  }, [retry])
 
   return (
     <div className="container">
       <div className="actions">
-        {isError && (
+        {status === "closed" && (
           <div className="error">
             Couldn't connect to OverlayPlugin on {getHost()}
           </div>
