@@ -3,9 +3,9 @@
   "version": "0.3.0",
   "private": true,
   "type": "module",
-  "homepage": "https://rawrington.github.io/SkillDisplay/",
+  "homepage": "https://reyronald.github.io/SkillDisplay/",
   "scripts": {
-    "dev": "vite --port 3000 --open ?HOST_PORT=ws://127.0.0.1:10501",
+    "dev": "vite --port 3000 --open",
     "build": "tsc && vite build",
     "tsc": "tsc",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
