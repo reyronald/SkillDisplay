@@ -43,7 +43,6 @@ export default function App() {
   useEffect(() => {
     let selfId: number | undefined
     let lastTimestamp = ""
-    let lastAction = -1
     let currentZone = "Unknown"
 
     let timeoutId: number | undefined = undefined
@@ -134,8 +133,7 @@ export default function App() {
             (actionId >= 9 && actionId <= 30000) ||
             actionId === SPRINT_ACTION_ID
           const isCraftingAction = actionId >= 100001 && actionId <= 100300
-          const isBugOrDuplicate =
-            logTimestamp === lastTimestamp && actionId === lastAction
+          const isBugOrDuplicate = logTimestamp === lastTimestamp
           const isItem = ability.startsWith("item_")
 
           if (
@@ -146,21 +144,16 @@ export default function App() {
           }
 
           if (Date.now() - Date.parse(lastTimestamp) > 120000) {
-            openNewEncounter() //last action > 120s ago
+            openNewEncounter() // last action > 120s ago
           }
 
           lastTimestamp = logTimestamp
-          lastAction = actionId
 
-          let keyToRemove: string | null = null
+          const key = logTimestamp
 
-          // This is pretty silly but it's the neatest way to handle the updates going
-          // out at the same time, without finding some way to merge the action lists....
-          ReactDOM.unstable_batchedUpdates(() => {
+          ReactDOM.flushSync(() => {
             setActionList((actionList) => {
               const lastAction = actionList.at(-1)
-
-              keyToRemove = lastAction?.key ?? null
 
               if (logCode === LINE_ID.NetworkCancelAbility) {
                 return actionList.slice(0, -1)
@@ -169,13 +162,9 @@ export default function App() {
                 lastAction?.casting
               ) {
                 const nextActionList = actionList.slice()
-                nextActionList[nextActionList.length - 1] = {
-                  ...lastAction,
-                  casting: false,
-                }
+                nextActionList[nextActionList.length - 1].casting = false
                 return nextActionList
               } else {
-                const key = logTimestamp
                 return actionList.concat({
                   actionId,
                   ability,
@@ -184,6 +173,7 @@ export default function App() {
                 })
               }
             })
+
             setEncounterList((encounterList) => {
               if (logCode !== LINE_ID.NetworkAbility) return encounterList
 
@@ -200,13 +190,11 @@ export default function App() {
             })
           })
 
-          if (keyToRemove != null) {
-            timeoutId = window.setTimeout(() => {
-              setActionList((actionList) =>
-                actionList.filter((action) => action.key !== keyToRemove),
-              )
-            }, 10000)
-          }
+          timeoutId = window.setTimeout(() => {
+            setActionList((actionList) =>
+              actionList.filter((action) => action.key !== key),
+            )
+          }, 10000)
         }
       },
     })
