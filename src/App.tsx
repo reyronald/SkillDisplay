@@ -4,7 +4,7 @@ import ReactDOM from "react-dom"
 import Action from "./Action"
 import RotationContainer from "./Rotation"
 import { listenToACT, getHost } from "./ACTListener"
-import { SPRINT_ACTION_ID, LINE_ID, LogCode } from "./constants"
+import { LINE_ID, LogCode, ACTION_IDS } from "./constants"
 
 import "./css/App.css"
 
@@ -131,7 +131,11 @@ export default function App() {
 
           const isCombatAction =
             (actionId >= 9 && actionId <= 30000) ||
-            actionId === SPRINT_ACTION_ID
+            actionId === ACTION_IDS.Sprint ||
+            actionId === ACTION_IDS["Release Iron Will"] ||
+            actionId === ACTION_IDS["Release Defiance"] ||
+            actionId === ACTION_IDS["Release Grit"] ||
+            actionId === ACTION_IDS["Release Royal Guard"]
           const isCraftingAction = actionId >= 100001 && actionId <= 100300
           const isBugOrDuplicate = logTimestamp === lastTimestamp
           const isItem = ability.startsWith("item_")

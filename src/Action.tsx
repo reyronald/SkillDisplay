@@ -1,6 +1,6 @@
 import React from "react"
 import "./css/Action.css"
-import { SPRINT_ACTION_ID } from "./constants"
+import { ACTION_IDS } from "./constants"
 
 const gcdOverrides = new Set([
   15997, //standard step
@@ -53,15 +53,22 @@ const ogcdOverrides = new Set([
   3559, //bard WM
   116, //bard AP
   114, //bard MB
-  SPRINT_ACTION_ID, // Sprint
+  ACTION_IDS.Sprint, // Sprint
 ])
 
-const actionOverrides = new Map([
+const actionOverrides = new Map<
+  number,
+  {
+    ActionCategoryTargetID: number
+    Icon: string
+    Name: string
+  }
+>([
   // Sprint's actual api data has an innaccurate icon.
   // https://xivapi.com/Action/3?columns=Icon,Name,ActionCategoryTargetID
   // https://xivapi.com/i/000000/000405.png
   [
-    SPRINT_ACTION_ID,
+    ACTION_IDS.Sprint,
     {
       ActionCategoryTargetID: 10,
       Icon: "/i/000000/000104.png",
