@@ -1,9 +1,5 @@
 export const ACTION_IDS = {
   Sprint: 3,
-  "Release Iron Will": 32065,
-  "Release Defiance": 32066,
-  "Release Grit": 32067,
-  "Release Royal Guard": 32068,
 } as const
 
 // https://github.com/OverlayPlugin/cactbot/blob/main/docs/LogGuide.md

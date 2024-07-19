@@ -130,12 +130,8 @@ export default function App() {
           const actionId = parseInt(logParameter3, 16)
 
           const isCombatAction =
-            (actionId >= 9 && actionId <= 30000) ||
-            actionId === ACTION_IDS.Sprint ||
-            actionId === ACTION_IDS["Release Iron Will"] ||
-            actionId === ACTION_IDS["Release Defiance"] ||
-            actionId === ACTION_IDS["Release Grit"] ||
-            actionId === ACTION_IDS["Release Royal Guard"]
+            (actionId >= 9 && actionId <= 40000) ||
+            actionId === ACTION_IDS.Sprint
           const isCraftingAction = actionId >= 100001 && actionId <= 100300
           const isBugOrDuplicate = logTimestamp === lastTimestamp
           const isItem = ability.startsWith("item_")
